@@ -1,7 +1,8 @@
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
+import tkinter as tk
 from tkinter import *
-from tkinter import ttk,messagebox,Tk
+from tkinter import ttk,messagebox,Tk,filedialog
 from tkinter.scrolledtext import ScrolledText
 
 
@@ -41,17 +42,36 @@ def New():
     key_entry.delete(0, END)
     encrypt_entry.delete(0,END)
 
+
+# Сохранение зашифрованного текста в .txt  файл
 def Save():
-    f = open('encrypt.txt', 'w')
-    with open('encrypt.txt', 'w') as file:
-        file.write(f'Зашифрованный текст:{encrypt_entry.get()}')
-    f.close()
-# Ключ 
-key = None
-# Данные для шифрования (строку преобразуем в байты)
-data = None
-ciphertext = None
-tag = None
+    root = Tk()
+    root.withdraw() # Скрываем окно Tkinter
+
+    # Открываем диалоговое окно "Сохранить как"
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".txt", # Расширение по умолчанию
+        filetypes=[("TXT files", "*.txt"), ("All files", "*.*")], # Фильтры файлов
+        title="Сохранить .txt файл как..."
+    )
+
+    # Проверяем, был ли выбран путь
+    if file_path:
+        try:
+            # Записываем данные в файл
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(f'Зашифрованный текст:{encrypt_entry.get()}\nКлюч:{key_entry.get()}')
+            messagebox.showinfo('Успех','Успешно сохранено')
+        except Exception as e:
+            pass
+    else:
+        messagebox.showerror('Отмена','Cохранение отменено')
+
+
+key = None # Ключ
+data = None # Данные для шифрования (строку преобразуем в байты)
+ciphertext = None # Зашифрованный текст
+tag = None # тег для проверки
 
 
 
@@ -64,6 +84,7 @@ root.title("Шифровальщик AES")
 root.geometry("1050x550")
 
 st = ScrolledText(root, width=50,  height=10)
+st.insert(tk.INSERT,'Пишите тут свой текст для шифрования\nНе забудь сохранить зашифрованный текст и ключ припомощи кнопки Menu>Save')
 st.pack(fill=BOTH, side=LEFT, expand=True)
 
 
@@ -73,7 +94,6 @@ main_menu["bg"] = "#5A858E"
 file_menu = Menu()
 file_menu.add_command(label="New",command=New)
 file_menu.add_command(label="Save",command=Save)
-file_menu.add_command(label="Open")
 file_menu.add_separator()
 file_menu.add_command(label="Exit")
  
