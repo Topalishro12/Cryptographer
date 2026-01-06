@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from tkinter.scrolledtext import ScrolledText
 import json
-import AES
-import RSA
+import AES1
+import RSA1
 
 class CryptoApp:
     def __init__(self, root):
@@ -16,7 +16,8 @@ class CryptoApp:
         self.current_rsa_private_key = None
         self.current_rsa_public_key = None
         self.encrypted_aes_data = None
-        
+        self.encrypted_rsa_data = None
+
         self.setup_ui()
     
     def setup_ui(self):
@@ -83,7 +84,7 @@ class CryptoApp:
         ttk.Label(right_frame, text="КЛЮЧ", font=("Arial", 20, "bold"), 
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.key_entry = ttk.Entry(right_frame, width=80, font=("Arial", 12))
+        self.key_entry = ScrolledText(right_frame, width=60,height=7)
         self.key_entry.pack(pady=10)
         
         ttk.Button(right_frame, text="Генерировать ключ", 
@@ -93,7 +94,7 @@ class CryptoApp:
         ttk.Label(right_frame, text="Зашифрованный текст", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.encrypt_entry = ttk.Entry(right_frame, width=80, font=("Arial", 12))
+        self.encrypt_entry = ScrolledText(right_frame, width=60,height=7)
         self.encrypt_entry.pack(pady=10)
         
         ttk.Button(right_frame, text="Шифровать", 
@@ -103,14 +104,14 @@ class CryptoApp:
         ttk.Label(right_frame, text="Тег", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.tag_entry = ttk.Entry(right_frame, width=80, font=("Arial", 12))
+        self.tag_entry = ScrolledText(right_frame, width=60,height=7)
         self.tag_entry.pack(pady=10)
         
         # Вектор инициализации
         ttk.Label(right_frame, text="Вектор инициализации", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.nonce_entry = ttk.Entry(right_frame, width=80, font=("Arial", 12))
+        self.nonce_entry = ScrolledText(right_frame, width=60,height=7)
         self.nonce_entry.pack(pady=10)
     
     def setup_aes_decrypt_ui(self):
@@ -121,32 +122,49 @@ class CryptoApp:
         
         # Кнопка расшифровки
         ttk.Button(self.frame_aes_decrypt, text='Расшифровать из файла',
-                  command=self.decrypt_aes_file, width=50).pack(pady=20)
+                  command=self.decrypt_aes_file, width=50).pack(pady=10)
     
     def setup_rsa_encrypt_ui(self):
-        ttk.Label(self.frame_rsa_encrypt, text="Ключ-приватный-RSA", font=("Arial", 20, "bold"),
-                 background="#95E4C1", anchor='center').pack(pady=20)
+        right_frame = ttk.Frame(self.frame_rsa_encrypt)
+        right_frame.configure(style="Custom.TFrame")
+        right_frame.pack(fill=tk.BOTH, side=tk.RIGHT, expand=True)
+
+        ttk.Label(right_frame, text="Ключ-приватный-RSA", font=("Arial", 20, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=10)
         
-        self.key_entry_rsa = ScrolledText(self.frame_rsa_encrypt, width=80, height=10)
+        self.key_entry_rsa = ScrolledText(right_frame, width=60, height=10)
         self.key_entry_rsa.pack(pady=10)
         
         
-        ttk.Label(self.frame_rsa_encrypt, text="Ключ-публичный-RSA", font=("Arial", 20, "bold"),
-                 background="#95E4C1", anchor='center').pack(pady=20)
+        ttk.Label(right_frame, text="Ключ-публичный-RSA", font=("Arial", 20, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=10)
         
-        self.key_entry_rsa2 = ScrolledText(self.frame_rsa_encrypt, width=80, height=10)
+        self.key_entry_rsa2 = ScrolledText(right_frame, width=60, height=10)
         self.key_entry_rsa2.pack(pady=10)
 
-        ttk.Button(self.frame_rsa_encrypt, text="Генерировать ключи RSA",
-                  command=self.generate_rsa_keys).pack(pady=21)
+        ttk.Button(right_frame, text="Генерировать ключи RSA",
+                  command=self.generate_rsa_keys).pack(pady=10)
+        
+        ttk.Label(right_frame, text="Зашифрованный текст", font=("Arial", 20, "bold"),
+                 background="#95E4C1", anchor='center').pack()
+
+        self.encrypt_entry1 = ScrolledText(right_frame, width=60,height=10)
+        self.encrypt_entry1.pack(pady=10)
+
+        ttk.Button(right_frame, text="Шифровать",
+                  command=self.encrypt_rsa).pack(pady=5)
+
+        self.text_input2 = ScrolledText(self.frame_rsa_encrypt, width=5,height=10)
+        self.text_input2.insert(tk.INSERT, 'Пишите тут свой текст для шифрования(желательный маленький)')
+        self.text_input2.pack(fill=tk.BOTH,side=tk.LEFT,expand=True)
     
     # Методы AES
     def generate_aes_key(self):
-        self.current_aes_key = AES.generate_aes_key()
-        self.key_entry.delete(0, tk.END)
-        self.key_entry.insert(0, self.current_aes_key.hex())
+        self.current_aes_key = AES1.generate_aes_key()
+        self.key_entry.delete('1.0', tk.END)
+        self.key_entry.insert('1.0', self.current_aes_key.hex())
         self.root.clipboard_clear()
-        self.root.clipboard_append(self.key_entry.get())
+        self.root.clipboard_append(self.key_entry.get('1.0'))
         messagebox.showinfo("Успех", "Ключ скопирован в буфер обмена")
 
     
@@ -160,16 +178,16 @@ class CryptoApp:
             messagebox.showwarning("Предупреждение", "Введите текст для шифрования")
             return
         
-        self.encrypted_aes_data = AES.encrypt_aes(self.current_aes_key, plaintext)
+        self.encrypted_aes_data = AES1.encrypt_aes(self.current_aes_key, plaintext)
         
-        self.encrypt_entry.delete(0, tk.END)
-        self.encrypt_entry.insert(0, self.encrypted_aes_data['ciphertext'])
+        self.encrypt_entry.delete('1.0', tk.END)
+        self.encrypt_entry.insert('1.0', self.encrypted_aes_data['ciphertext'])
         
-        self.tag_entry.delete(0, tk.END)
-        self.tag_entry.insert(0, self.encrypted_aes_data['tag'])
+        self.tag_entry.delete('1.0', tk.END)
+        self.tag_entry.insert('1.0', self.encrypted_aes_data['tag'])
         
-        self.nonce_entry.delete(0, tk.END)
-        self.nonce_entry.insert(0, self.encrypted_aes_data['nonce'])
+        self.nonce_entry.delete('1.0', tk.END)
+        self.nonce_entry.insert('1.0', self.encrypted_aes_data['nonce'])
     
     def decrypt_aes_file(self):
         file_path = filedialog.askopenfilename(
@@ -180,7 +198,7 @@ class CryptoApp:
         
         if file_path:
             try:
-                decrypted_text = AES.decrypt_aes_from_file(file_path)
+                decrypted_text = AES1.decrypt_aes_from_file(file_path)
                 self.decrypted_text.delete("1.0", tk.END)
                 self.decrypted_text.insert("1.0", decrypted_text)
             except Exception as e:
@@ -216,17 +234,28 @@ class CryptoApp:
     
     # Методы RSA
     def generate_rsa_keys(self):
-        self.current_rsa_private_key, self.current_rsa_public_key = RSA.generate_rsa_keys()
-        public_key_pem = RSA.get_public_key_pem(self.current_rsa_public_key)
-        private_key_pem = RSA.get_public_key_pem(self.current_rsa_private_key)
+        self.current_rsa_private_key, self.current_rsa_public_key = RSA1.generate_rsa_keys()
+        self.public_key_pem = RSA1.get_public_key_pem(self.current_rsa_public_key)
+        self.private_key_pem = RSA1.get_public_key_pem(self.current_rsa_private_key)
 
         # Публичный
         self.key_entry_rsa.delete("1.0", tk.END)
-        self.key_entry_rsa.insert("1.0", public_key_pem)
+        self.key_entry_rsa.insert("1.0", self.public_key_pem)
         # Приватный
         self.key_entry_rsa2.delete("1.0", tk.END)
-        self.key_entry_rsa2.insert("1.0", private_key_pem)
-        
+        self.key_entry_rsa2.insert("1.0", self.private_key_pem)
+
+    def encrypt_rsa(self):
+        if self.current_rsa_private_key == None and self.current_rsa_public_key == None:
+            messagebox.showwarning("Предупреждение", "Сначала сгенерируйте ключи")
+            return
+        plaintext2 = self.text_input.get("1.0", tk.END).strip()
+        if plaintext2 == None:
+            messagebox.showwarning("Предупреждение", "Введите текст для шифрования")
+            return
+        self.encrypted_rsa_data = RSA1.encrypt_rsa(self.current_rsa_private_key,self.current_rsa_public_key, plaintext2)
+        self.encrypt_entry1.delete('1.0', tk.END)
+        self.encrypt_entry1.insert('1.0', self.encrypted_rsa_data['ciphertext_rsa'])
 
 if __name__ == "__main__":
     root = tk.Tk()
