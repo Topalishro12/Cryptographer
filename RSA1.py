@@ -22,9 +22,11 @@ def encrypt_rsa(public_key,plaintext):
 
     return {'ciphertext_rsa':base64.b64encode(ciphertext_rsa).decode('utf-8')}
 
-def decrypt(private_key_obj,ciphertext_rsa):
-    ciphertext_rsa_byte = base64.b64decode(ciphertext_rsa)
-    decipher = PKCS1_OAEP.new(private_key_obj)
-    decrypted = decipher.decrypt(ciphertext_rsa_byte)
-    return decrypted.decode('utf-8')
+def decrypt(private_key, ciphertext_b64):
+    private_key_obj = RSA.import_key(private_key)
+    ciphertext = base64.b64decode(ciphertext_b64.encode('utf-8'))
+    # Расшифрование приватным ключом
+    cipher_rsa = PKCS1_OAEP.new(private_key_obj)
+    plaintext = cipher_rsa.decrypt(ciphertext)
+    return plaintext.decode('utf-8')
         

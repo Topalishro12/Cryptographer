@@ -5,6 +5,7 @@ import json
 import AES1
 import RSA1
 
+
 class CryptoApp:
     def __init__(self, root):
         self.root = root
@@ -169,28 +170,44 @@ class CryptoApp:
         self.text_input2.insert(tk.INSERT, 'Пишите тут свой текст для шифрования(желательный маленький)')
         self.text_input2.pack(fill=tk.BOTH,side=tk.LEFT,expand=True)
     def setup_rsa_decrypt_ui(self):
-        ttk.Label(self.frame_rsa_decrypt, text="Вставьте ключ-приватный-RSA", font=("Arial", 20, "bold"),
-                 background="#95E4C1", anchor='center').pack(pady=10)
-        self.set_entry_private_key = ttk.Entry(self.frame_rsa_decrypt,width=200)
-        self.set_entry_private_key.pack(pady=10)
-        ttk.Label(self.frame_rsa_decrypt, text="Вставьте зашифрованный текст", font=("Arial", 20, "bold"),
-                 background="#95E4C1", anchor='center').pack(pady=10)
-        self.set_entry_ciphertext = ttk.Entry(self.frame_rsa_decrypt,width=200)
-        self.set_entry_ciphertext.pack(pady=10)
-
-
-
-
+        # Левый фрейм для расшифрованного текста
+        left_frame = ttk.Frame(self.frame_rsa_decrypt)
+        left_frame.configure(style="Custom.TFrame")
+        left_frame.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+        
         # Поле для расшифрованного текста
-        self.decrypted_text2 = ScrolledText(self.frame_rsa_decrypt, width=50, height=10)
-        self.decrypted_text2.insert(tk.INSERT, 'Тут будет расшифрованный текст')
-        self.decrypted_text2.pack(fill=tk.BOTH, expand=True)
+        ttk.Label(left_frame, text="Расшифрованный текст", font=("Arial", 16, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
+        self.decrypted_text2 = ScrolledText(left_frame, width=50, height=10)
+        self.decrypted_text2.insert(tk.INSERT, 'Тут будет расшифрованный текст.Убедитесь,что файл приватного ключа и зашифрованного текста находятся в одном месте')
+        self.decrypted_text2.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-
-        # Кнопка расшифровки
-        ttk.Button(self.frame_rsa_decrypt, text='Расшифровать из файла',
-                  command=self.decrypt_rsa_file, width=50).pack(pady=10)
+        # Правый фрейм для ключей и зашифрованного текста
+        right_frame = ttk.Frame(self.frame_rsa_decrypt)
+        right_frame.configure(style="Custom.TFrame")
+        right_frame.pack(fill=tk.BOTH, side=tk.RIGHT, expand=True)
+        
+        # Приватный ключ
+        ttk.Label(right_frame, text="Приватный ключ", font=("Arial", 16, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
+        
+        self.private_key_decrypt = ScrolledText(right_frame, width=60, height=10)
+        self.private_key_decrypt.pack(pady=10)
+        
+        # Зашифрованный текст
+        ttk.Label(right_frame, text="Зашифрованный текст", font=("Arial", 16, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
+        
+        self.encrypted_text_decrypt = ScrolledText(right_frame, width=60, height=10)
+        self.encrypted_text_decrypt.pack(pady=10)
+        
+        # Кнопки расшифровки
+        ttk.Button(right_frame, text='Расшифровать из файла',
+                  command=self.decrypt_rsa_file, width=50).pack(pady=5)
+        
+        ttk.Button(right_frame, text='Расшифровать',
+                  command=self.decrypt_rsa_direct, width=50).pack(pady=5)
 
 
     # Методы AES
@@ -262,10 +279,10 @@ class CryptoApp:
         self.current_aes_key = None
         self.encrypted_aes_data = None
         self.text_input.delete("1.0", tk.END)
-        self.key_entry.delete(0, tk.END)
-        self.encrypt_entry.delete(0, tk.END)
-        self.tag_entry.delete(0, tk.END)
-        self.nonce_entry.delete(0, tk.END)
+        self.key_entry.delete("1.0", tk.END)
+        self.encrypt_entry.delete("1.0", tk.END)
+        self.tag_entry.delete("1.0", tk.END)
+        self.nonce_entry.delete("1.0", tk.END)
     
     # Методы RSA
     def generate_rsa_keys(self):
@@ -291,15 +308,63 @@ class CryptoApp:
         self.encrypted_rsa_data = RSA1.encrypt_rsa(self.current_rsa_public_key, plaintext2)
         self.encrypt_entry1.delete('1.0', tk.END)
         self.encrypt_entry1.insert('1.0', self.encrypted_rsa_data['ciphertext_rsa'])
+    
     def decrypt_rsa_file(self):
-            self.privatekey = self.set_entry_private_key.get()
-            self.ciphert = self.set_entry_ciphertext.get()
-            try:
-                decrypted_text = RSA1.decrypt(self.privatekey,self.ciphert)
-                self.decrypted_text2.delete("1.0", tk.END)
-                self.decrypted_text2.insert("1.0", decrypted_text)
-            except Exception as e:
-                messagebox.showerror("Ошибка", f"Не удалось расшифровать файл: {str(e)}")
+        file_path = filedialog.askopenfilename(
+            title="Выберите файл с приватным ключом",
+            filetypes=[("PEM files", "*.pem"), ("All files", "*.*")]
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # Загружаем приватный ключ
+            with open(file_path, 'r', encoding='utf-8') as f:
+                private_key_pem = f.read()
+            
+            self.private_key_decrypt.delete('1.0', tk.END)
+            self.private_key_decrypt.insert('1.0', private_key_pem)
+            
+            # Пытаемся найти и загрузить зашифрованный текст
+            ciphertext_path = file_path.replace('.pem', '_ciphertext.txt')
+            with open(ciphertext_path, 'r', encoding='utf-8') as f:
+                ciphertext = f.read()
+            
+            self.encrypted_text_decrypt.delete('1.0', tk.END)
+            self.encrypted_text_decrypt.insert('1.0', ciphertext)
+            
+            # Расшифровываем текст
+            decrypted = RSA1.decrypt(private_key_pem, ciphertext)
+            self.decrypted_text2.delete('1.0', tk.END)
+            self.decrypted_text2.insert('1.0', decrypted)
+            
+            messagebox.showinfo('Успех', 'Текст успешно расшифрован')
+        
+        except FileNotFoundError:
+            messagebox.showerror('Ошибка', 'Не найден файл с зашифрованным текстом')
+        except Exception as e:
+            messagebox.showerror('Ошибка', f'Ошибка расшифрования: {str(e)}')
+    
+    def decrypt_rsa_direct(self):
+        private_key_pem = self.private_key_decrypt.get('1.0', tk.END).strip()
+        ciphertext = self.encrypted_text_decrypt.get('1.0', tk.END).strip()
+        
+        if not private_key_pem:
+            messagebox.showwarning('Предупреждение', 'Введите приватный ключ')
+            return
+        
+        if not ciphertext:
+            messagebox.showwarning('Предупреждение', 'Введите зашифрованный текст')
+            return
+        
+        try:
+            decrypted = RSA1.decrypt(private_key_pem, ciphertext)
+            self.decrypted_text2.delete('1.0', tk.END)
+            self.decrypted_text2.insert('1.0', decrypted)
+            messagebox.showinfo('Успех', 'Текст успешно расшифрован')
+        except Exception as e:
+            messagebox.showerror('Ошибка', f'Ошибка расшифрования: {str(e)}')
     def save_rsa_data(self):
         if not (self.private_key_pem and self.public_key_pem and self.encrypted_rsa_data):
             messagebox.showwarning("Предупреждение", "Сначала сгенерируйте ключи и зашифруйте данные")
