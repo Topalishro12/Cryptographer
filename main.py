@@ -11,7 +11,7 @@ class CryptoApp:
         self.root.title("Шифровальщик")
         self.root.geometry("1650x650")
         
-        # Глобальные переменные для текущей сессии
+        # Глобальные переменные
         self.current_aes_key = None
         self.current_rsa_private_key = None
         self.current_rsa_public_key = None
@@ -53,29 +53,40 @@ class CryptoApp:
         self.setup_aes_decrypt_ui()
         # Настройка интерфейса RSA шифрования
         self.setup_rsa_encrypt_ui()
-        
+        self.setup_rsa_decrypt_ui()
+
         # Меню
         self.setup_menu()
     
     def setup_menu(self):
-        main_menu = tk.Menu(self.root)
-        self.root.config(menu=main_menu)
+        menu_bar = tk.Menu(self.root)
+        root.config(menu=menu_bar)
+
         
-        file_menu = tk.Menu(main_menu, tearoff=0)
-        file_menu.add_command(label="New AES", command=self.new_aes_session)
-        file_menu.add_command(label="Save AES", command=self.save_aes_data)
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="New", command=self.new_aes_session)
+        file_menu.add_command(label="Save", command=self.save_aes_data)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
         
-        main_menu.add_cascade(label="Menu-AES", menu=file_menu)
+        menu_bar.add_cascade(label="Menu-AES", menu=file_menu)
+
+        
+        file_menu2 = tk.Menu(menu_bar, tearoff=0)
+        file_menu2.add_command(label="New",command=self.new_rsa_session)
+        file_menu2.add_command(label="Save",command=self.save_rsa_data)
+        file_menu2.add_separator()
+        file_menu2.add_command(label="Exit", command=self.root.quit)
+        
+        menu_bar.add_cascade(label="Menu-RSA", menu=file_menu2)
     
     def setup_aes_encrypt_ui(self):
         # Поле ввода текста
-        self.text_input = ScrolledText(self.frame_aes_encrypt, width=50, height=10)
+        self.text_input = ScrolledText(self.frame_aes_encrypt, width=50, height=5)
         self.text_input.insert(tk.INSERT, 'Пишите тут свой текст для шифрования')
         self.text_input.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
         
-        # Правый фрейм для элементов управления
+        # Правый фрейм для виджетов
         right_frame = ttk.Frame(self.frame_aes_encrypt)
         right_frame.configure(style="Custom.TFrame")
         right_frame.pack(fill=tk.BOTH, side=tk.RIGHT, expand=True)
@@ -84,7 +95,7 @@ class CryptoApp:
         ttk.Label(right_frame, text="КЛЮЧ", font=("Arial", 20, "bold"), 
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.key_entry = ScrolledText(right_frame, width=60,height=7)
+        self.key_entry = ScrolledText(right_frame, width=60,height=3)
         self.key_entry.pack(pady=10)
         
         ttk.Button(right_frame, text="Генерировать ключ", 
@@ -94,7 +105,7 @@ class CryptoApp:
         ttk.Label(right_frame, text="Зашифрованный текст", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.encrypt_entry = ScrolledText(right_frame, width=60,height=7)
+        self.encrypt_entry = ScrolledText(right_frame, width=60,height=5)
         self.encrypt_entry.pack(pady=10)
         
         ttk.Button(right_frame, text="Шифровать", 
@@ -104,14 +115,14 @@ class CryptoApp:
         ttk.Label(right_frame, text="Тег", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.tag_entry = ScrolledText(right_frame, width=60,height=7)
+        self.tag_entry = ScrolledText(right_frame, width=60,height=3)
         self.tag_entry.pack(pady=10)
         
         # Вектор инициализации
         ttk.Label(right_frame, text="Вектор инициализации", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=5, fill=tk.X)
         
-        self.nonce_entry = ScrolledText(right_frame, width=60,height=7)
+        self.nonce_entry = ScrolledText(right_frame, width=60,height=5)
         self.nonce_entry.pack(pady=10)
     
     def setup_aes_decrypt_ui(self):
@@ -129,14 +140,14 @@ class CryptoApp:
         right_frame.configure(style="Custom.TFrame")
         right_frame.pack(fill=tk.BOTH, side=tk.RIGHT, expand=True)
 
-        ttk.Label(right_frame, text="Ключ-приватный-RSA", font=("Arial", 20, "bold"),
+        ttk.Label(right_frame, text="Ключ-публичный-RSA", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=10)
         
         self.key_entry_rsa = ScrolledText(right_frame, width=60, height=10)
         self.key_entry_rsa.pack(pady=10)
         
         
-        ttk.Label(right_frame, text="Ключ-публичный-RSA", font=("Arial", 20, "bold"),
+        ttk.Label(right_frame, text="Ключ-приватный-RSA", font=("Arial", 20, "bold"),
                  background="#95E4C1", anchor='center').pack(pady=10)
         
         self.key_entry_rsa2 = ScrolledText(right_frame, width=60, height=10)
@@ -157,7 +168,31 @@ class CryptoApp:
         self.text_input2 = ScrolledText(self.frame_rsa_encrypt, width=5,height=10)
         self.text_input2.insert(tk.INSERT, 'Пишите тут свой текст для шифрования(желательный маленький)')
         self.text_input2.pack(fill=tk.BOTH,side=tk.LEFT,expand=True)
-    
+    def setup_rsa_decrypt_ui(self):
+        ttk.Label(self.frame_rsa_decrypt, text="Вставьте ключ-приватный-RSA", font=("Arial", 20, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=10)
+        self.set_entry_private_key = ttk.Entry(self.frame_rsa_decrypt,width=200)
+        self.set_entry_private_key.pack(pady=10)
+        ttk.Label(self.frame_rsa_decrypt, text="Вставьте зашифрованный текст", font=("Arial", 20, "bold"),
+                 background="#95E4C1", anchor='center').pack(pady=10)
+        self.set_entry_ciphertext = ttk.Entry(self.frame_rsa_decrypt,width=200)
+        self.set_entry_ciphertext.pack(pady=10)
+
+
+
+
+        # Поле для расшифрованного текста
+        self.decrypted_text2 = ScrolledText(self.frame_rsa_decrypt, width=50, height=10)
+        self.decrypted_text2.insert(tk.INSERT, 'Тут будет расшифрованный текст')
+        self.decrypted_text2.pack(fill=tk.BOTH, expand=True)
+        
+        
+
+        # Кнопка расшифровки
+        ttk.Button(self.frame_rsa_decrypt, text='Расшифровать из файла',
+                  command=self.decrypt_rsa_file, width=50).pack(pady=10)
+
+
     # Методы AES
     def generate_aes_key(self):
         self.current_aes_key = AES1.generate_aes_key()
@@ -246,16 +281,64 @@ class CryptoApp:
         self.key_entry_rsa2.insert("1.0", self.private_key_pem)
 
     def encrypt_rsa(self):
-        if self.current_rsa_private_key == None and self.current_rsa_public_key == None:
+        if not (self.current_rsa_private_key and self.current_rsa_public_key):
             messagebox.showwarning("Предупреждение", "Сначала сгенерируйте ключи")
             return
-        plaintext2 = self.text_input.get("1.0", tk.END).strip()
+        plaintext2 = self.text_input2.get("1.0", tk.END).strip()
         if plaintext2 == None:
             messagebox.showwarning("Предупреждение", "Введите текст для шифрования")
             return
-        self.encrypted_rsa_data = RSA1.encrypt_rsa(self.current_rsa_private_key,self.current_rsa_public_key, plaintext2)
+        self.encrypted_rsa_data = RSA1.encrypt_rsa(self.current_rsa_public_key, plaintext2)
         self.encrypt_entry1.delete('1.0', tk.END)
         self.encrypt_entry1.insert('1.0', self.encrypted_rsa_data['ciphertext_rsa'])
+    def decrypt_rsa_file(self):
+            self.privatekey = self.set_entry_private_key.get()
+            self.ciphert = self.set_entry_ciphertext.get()
+            try:
+                decrypted_text = RSA1.decrypt(self.privatekey,self.ciphert)
+                self.decrypted_text2.delete("1.0", tk.END)
+                self.decrypted_text2.insert("1.0", decrypted_text)
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Не удалось расшифровать файл: {str(e)}")
+    def save_rsa_data(self):
+        if not (self.private_key_pem and self.public_key_pem and self.encrypted_rsa_data):
+            messagebox.showwarning("Предупреждение", "Сначала сгенерируйте ключи и зашифруйте данные")
+            return
+    
+        # Запрос пути для сохранения
+        private_key_path = filedialog.asksaveasfilename(
+        defaultextension=".pem",
+        filetypes=[("PEM files", "*.pem"), ("All files", "*.*")],
+        title="Сохранить данные"
+    )
+    
+        if private_key_path:
+            try:
+                # Сохраняем приватный ключ
+                with open(private_key_path, 'w', encoding='utf-8') as f:
+                    f.write(self.private_key_pem)
+            
+                # Сохраняем публичный ключ
+                public_key_path = private_key_path.replace('.pem', '_public.pem')
+                with open(public_key_path, 'w', encoding='utf-8') as f:
+                    f.write(self.public_key_pem)
+            
+                # Сохраняем зашифрованный текст
+                ciphertext_path = private_key_path.replace('.pem', '_ciphertext.txt')
+                with open(ciphertext_path, 'w', encoding='utf-8') as f:
+                    f.write(self.encrypted_rsa_data['ciphertext_rsa'])
+
+            except Exception as e:
+                messagebox.showerror('Ошибка', f'Ошибка сохранения: {str(e)}')
+    def new_rsa_session(self):
+        self.current_rsa_private_key = None
+        self.current_rsa_public_key = None
+        self.encrypted_rsa_data = None
+        self.text_input2.delete("1.0", tk.END)
+        self.key_entry_rsa.delete("1.0", tk.END)
+        self.key_entry_rsa2.delete("1.0", tk.END)
+        self.encrypt_entry1.delete("1.0", tk.END)
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
